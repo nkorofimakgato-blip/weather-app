@@ -2,7 +2,7 @@ import { useState } from 'react'
 import SearchBar from './components/SearchBar'
 import CurrentWeather from './components/CurrentWeather'
 import Forecast from './components/Forecast'
-import type { GeoResponse, WeatherResponse } from './types/weather'
+import type { GeoResult, WeatherResponse } from './types/weather'
 
 function App() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
@@ -18,18 +18,10 @@ function App() {
     return (await res.json()) as WeatherResponse
   }
 
-  async function handleSearch(city: string) {
+  async function handleSelect(place: GeoResult) {
     setLoading(true)
     setError(null)
     try {
-      const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`
-      )
-      const geo: GeoResponse = await geoRes.json()
-      if (!geo.results || geo.results.length === 0) {
-        throw new Error(`City "${city}" not found`)
-      }
-      const place = geo.results[0]
       const data = await fetchWeather(place.latitude, place.longitude)
       setWeather(data)
       setCityName(place.name)
@@ -76,16 +68,14 @@ function App() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="max-w-3xl mx-auto px-4 py-12">
         <header className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Weather
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Weather</h1>
           <p className="text-gray-600">
             Search any city or use your current location
           </p>
         </header>
 
         <SearchBar
-          onSearch={handleSearch}
+          onSelect={handleSelect}
           onGeolocate={handleGeolocate}
           loading={loading}
         />
@@ -116,9 +106,7 @@ function App() {
         {!weather && !loading && !error && (
           <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
             <p className="text-6xl mb-4">🌤️</p>
-            <p className="text-gray-500">
-              Search a city to see the weather
-            </p>
+            <p className="text-gray-500">Search a city to see the weather</p>
           </div>
         )}
       </div>
